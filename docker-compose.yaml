@@ -1,0 +1,46 @@
+services:
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_API_URL=http://backend:5057
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    ports:
+      - "5057:80"
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - DB_CONNECTION_STRING=Host=db;Port=5432;Username=postgres;Password=postgres;Database=StudentDB
+    depends_on:
+      - db
+    networks:
+      - db
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: StudentDB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - db
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  db:
+    driver: bridge
